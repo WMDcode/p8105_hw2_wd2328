@@ -7,6 +7,7 @@ output: github_document
 
 ```{r message=FALSE, warning=FALSE}
 library(tidyverse)
+library(readxl)
 ```
 
 # Problem 1
@@ -69,17 +70,70 @@ unemployment_df = read_csv("data/unemployment.csv", na = c("NA", "", " ", ".")) 
       ym(paste(year, month)),
       label = TRUE,
       abbr = FALSE),
-    year = as.character(year))
+    year = as.character(year)) |>
+  filter(!is.na(unemployment))
 
 head(unemployment_df, 5)
 ```
 
-Joining data-sets
+Joining data-sets using `full_join()`
 ```{r}
-snp_pols_df = full_join(pols_df, snp_df, by = c("year", "month"))
-problem1_df = full_join(snp_pols_df, unemployment_df, by = c("year", "month"))
+problem1_df = full_join(pols_df, snp_df, by = c("year", "month")) |>
+  full_join(unemployment_df, by = c("year", "month"))
 
 head(problem1_df, 5)
 ```
 
-These data-sets are comprised of historical political and economic data. `pols-month.csv` contains monthly data from 1947-2015 for the numbers of governors, senators, and representatives that are members of the democratic or republican party, as well as which party the president belonged to. `snp.csv` contains the historical closing prices of the S&P 500 at the beginning of each month from 1950-2015. `unemployment.csv` contains the percentage unemployment from 1948-2015.
+These data-sets are comprised of historical political, economic, and financial data. `pols-month.csv` contains monthly records from 1947-2015 on the numbers of governors, senators, and representatives in either the democratic or republican party, as well as the party of the president at the time. `snp.csv` contains the historical closing prices of the S&P 500 at the beginning of each month from 1950-2015. `unemployment.csv` gives unemployment percentages from 1948-2015. After joining these data-sets, the resulting data-frame, `problem1_df`, contains `r nrow(problem1_df)` rows and `r ncol(problem1_df)` columns, covering data from January 1947 to July 2015. Key variables include `president` (president's party), `close`(S&P 500 closing price), and `unemployment` (monthly unemployment rates).
+
+# Problem 2
+
+Mr. Trash Wheel
+```{r}
+mr_tw_df = read_excel("data/202409 Trash Wheel Collection Data.xlsx",
+                      sheet = "Mr. Trash Wheel",
+                      na = c("NA", "", " ", "."),
+                      range = "A2:N653") |>
+  janitor::clean_names() |>
+  mutate(
+    year = as.numeric(year),
+    sports_balls = as.integer(round(sports_balls)),
+    wheel = "mr_trash_wheel")
+```
+
+Professor Trash Wheel
+```{r}
+professor_tw_df = read_excel("data/202409 Trash Wheel Collection Data.xlsx",
+                             sheet = "Professor Trash Wheel",
+                             na = c("NA", "", " ", "."),
+                             range = "A2:M120") |>
+  janitor::clean_names() |>
+  mutate(
+    wheel = "professor_trash_wheel")
+```
+
+Gwynnda Trash Wheel
+```{r}
+gwynnda_tw_df = read_excel("data/202409 Trash Wheel Collection Data.xlsx",
+                           sheet = "Gwynnda Trash Wheel",
+                           na = c("NA", "", " ", "."),
+                           range = "A2:L265") |>
+  janitor::clean_names() |>
+  mutate(
+    wheel = "gwynnda_trash_wheel")
+```
+
+Joining data-sets using `bind_rows()`
+```{r}
+problem2_df = bind_rows(mr_tw_df, professor_tw_df, gwynnda_tw_df) |>
+  select(wheel, everything())
+
+head(problem2_df)
+```
+
+The Trash Wheels remove litter and debris from the Inner Harbor in Baltimore, Maryland and deposits it into dumpsters. These dumpsters are transferred to waste-to-energy plants where the trash is incinerated and converted to energy for homes. The data-sets contain information about the dumpsters and their contents. There are three different Trash Wheels included in this data-set (Mr, Professor, and Gwynnda Trash Wheels), each with their own set of dumpsters and dumpster content information. Information for the Trash Wheels includes dumpster number, date of collection, weight and volume of litter, a breakdown of litter type and amount, and homes powered. The total number of observations, or number of rows, is `r nrow(problem2_df)`. The total weight of trash collected by Professor Trash Wheel was `r sum(pull(filter(problem2_df, wheel == "professor_trash_wheel"), weight_tons))` tons. The total number of cigarette butts collected by Gwynnda Trash Wheel in June 2022 was `r format(sum(pull(filter(problem2_df, wheel == "gwynnda_trash_wheel", month == "June", year == 2022), cigarette_butts)), scientific = FALSE, big.mark = ",")`.
+
+# Problem 3
+
+
+
