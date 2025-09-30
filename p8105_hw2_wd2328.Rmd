@@ -62,7 +62,7 @@ head(snp_df, 5)
 unemployment_df = read_csv("data/unemployment.csv", na = c("NA", "", " ", ".")) |>
   janitor::clean_names() |>
   pivot_longer(
-    jan:dec,
+    cols = jan:dec,
     names_to = "month",
     values_to = "unemployment") |>
   mutate(
@@ -135,5 +135,49 @@ The Trash Wheels remove litter and debris from the Inner Harbor in Baltimore, Ma
 
 # Problem 3
 
+`Zip Codes.csv`
+```{r message=FALSE}
+zipcodes_df = read_csv("data/Zip Codes.csv", na = "NA") |>
+  janitor::clean_names() |>
+  select(-c(state_fips, county_code, file_date))
 
+head(zipcodes_df, 5)
+```
 
+`Zip_zori_uc_sfrcondomfr_sm_month_NYC.csv`
+```{r message=FALSE}
+zillow_df = read_csv("data/Zip_zori_uc_sfrcondomfr_sm_month_NYC.csv", na = "NA") |>
+  janitor::clean_names() |>
+  pivot_longer(
+    cols = x2015_01_31:x2024_08_31,
+    names_to = "date",
+    values_to = "rental_price") |>
+  select(-c(region_type, state_name, metro)) |>
+  rename(zip_code = region_name,
+         county = county_name) |>
+  mutate(
+    date = ymd(str_remove(date, "x")),
+    county = str_remove(county, " County"))
+
+head(zillow_df, 5)
+```
+
+Joining using `full_join()`
+```{r}
+problem3_df = full_join(zillow_df, zipcodes_df, by = c("county", "zip_code")) |>
+  select(
+    c(date,
+      city,
+      state,
+      zip_code,
+      county,
+      county_fips,
+      neighborhood,
+      region_id,
+      size_rank,
+      rental_price))
+
+head(problem3_df, 5)
+```
+
+The resulting data-set `problem3_df` is...
