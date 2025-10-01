@@ -8,6 +8,8 @@ output: github_document
 ```{r message=FALSE, warning=FALSE}
 library(tidyverse)
 library(readxl)
+library(dplyr)
+library(knitr)
 ```
 
 # Problem 1
@@ -76,24 +78,24 @@ unemployment_df = read_csv("data/unemployment.csv", na = c("NA", "", " ", ".")) 
 head(unemployment_df, 5)
 ```
 
-Joining data-sets using `full_join()`
+Joining data-sets using `left_join()`
 ```{r}
-problem1_df = full_join(pols_df, snp_df, by = c("year", "month")) |>
-  full_join(unemployment_df, by = c("year", "month"))
+problem1_df = left_join(pols_df, snp_df, by = c("year", "month")) |>
+  left_join(unemployment_df, by = c("year", "month"))
 
 head(problem1_df, 5)
 ```
 
-These data-sets are comprised of historical political, economic, and financial data. `pols-month.csv` contains monthly records from 1947-2015 on the numbers of governors, senators, and representatives in either the democratic or republican party, as well as the party of the president at the time. `snp.csv` contains the historical closing prices of the S&P 500 at the beginning of each month from 1950-2015. `unemployment.csv` gives unemployment percentages from 1948-2015. After joining these data-sets, the resulting data-frame, `problem1_df`, contains `r nrow(problem1_df)` rows and `r ncol(problem1_df)` columns, covering data from January 1947 to July 2015. Key variables include `president` (president's party), `close`(S&P 500 closing price), and `unemployment` (monthly unemployment rates).
+These data-sets are comprised of historical political, economic, and financial data. `pols-month.csv` contains monthly records from 1947-2015 on the numbers of governors, senators, and representatives in either the democratic or republican party, as well as the party of the president at the time. `snp.csv` contains the historical closing prices of the S&P 500 at the beginning of each month from 1950-2015. `unemployment.csv` gives unemployment percentages from 1948-2015. After joining these data-sets, the resulting data-frame, `problem1_df`, contains `r nrow(problem1_df)` rows and `r ncol(problem1_df)` columns, covering data from January 1947 to June 2015. Key variables include `president` (president's party), `close`(S&P 500 closing price), and `unemployment` (monthly unemployment rates).
 
 # Problem 2
 
 Mr. Trash Wheel
 ```{r}
-mr_tw_df = read_excel("data/202409 Trash Wheel Collection Data.xlsx",
+mr_tw_df = read_excel("data/202509 Trash Wheel Collection Data.xlsx",
                       sheet = "Mr. Trash Wheel",
                       na = c("NA", "", " ", "."),
-                      range = "A2:N653") |>
+                      range = "A2:N709") |>
   janitor::clean_names() |>
   mutate(
     year = as.numeric(year),
@@ -103,24 +105,24 @@ mr_tw_df = read_excel("data/202409 Trash Wheel Collection Data.xlsx",
 
 Professor Trash Wheel
 ```{r}
-professor_tw_df = read_excel("data/202409 Trash Wheel Collection Data.xlsx",
+professor_tw_df = read_excel("data/202509 Trash Wheel Collection Data.xlsx",
                              sheet = "Professor Trash Wheel",
                              na = c("NA", "", " ", "."),
-                             range = "A2:M120") |>
+                             range = "A2:M134") |>
   janitor::clean_names() |>
   mutate(
     wheel = "professor_trash_wheel")
 ```
 
-Gwynnda Trash Wheel
+Gwynns Falls Trash Wheel
 ```{r}
-gwynnda_tw_df = read_excel("data/202409 Trash Wheel Collection Data.xlsx",
-                           sheet = "Gwynnda Trash Wheel",
+gwynnda_tw_df = read_excel("data/202509 Trash Wheel Collection Data.xlsx",
+                           sheet = "Gwynns Falls Trash Wheel",
                            na = c("NA", "", " ", "."),
-                           range = "A2:L265") |>
+                           range = "A2:L351") |>
   janitor::clean_names() |>
   mutate(
-    wheel = "gwynnda_trash_wheel")
+    wheel = "gwynns_falls_trash_wheel")
 ```
 
 Joining data-sets using `bind_rows()`
@@ -131,7 +133,7 @@ problem2_df = bind_rows(mr_tw_df, professor_tw_df, gwynnda_tw_df) |>
 head(problem2_df)
 ```
 
-The Trash Wheels remove litter and debris from the Inner Harbor in Baltimore, Maryland and deposits it into dumpsters. These dumpsters are transferred to waste-to-energy plants where the trash is incinerated and converted to energy for homes. The data-sets contain information about the dumpsters and their contents. There are three different Trash Wheels included in this data-set (Mr, Professor, and Gwynnda Trash Wheels), each with their own set of dumpsters and dumpster content information. Information for the Trash Wheels includes dumpster number, date of collection, weight and volume of litter, a breakdown of litter type and amount, and homes powered. The total number of observations, or number of rows, is `r nrow(problem2_df)`. The total weight of trash collected by Professor Trash Wheel was `r sum(pull(filter(problem2_df, wheel == "professor_trash_wheel"), weight_tons))` tons. The total number of cigarette butts collected by Gwynnda Trash Wheel in June 2022 was `r format(sum(pull(filter(problem2_df, wheel == "gwynnda_trash_wheel", month == "June", year == 2022), cigarette_butts)), scientific = FALSE, big.mark = ",")`.
+The Trash Wheels remove litter and debris from the Inner Harbor in Baltimore, Maryland and deposits it into dumpsters. These dumpsters are transferred to waste-to-energy plants where the trash is incinerated and converted to energy for homes. The data-sets contain information about the dumpsters and their contents. There are three different Trash Wheels included in this data-set (Mr, Professor, and Gwynns Falls Trash Wheels), each with their own set of dumpsters and dumpster content information. Information for the Trash Wheels includes dumpster number, date of collection, weight and volume of litter, a breakdown of litter type and amount, and homes powered. The total number of observations, or number of rows, is `r nrow(problem2_df)`. The total weight of trash collected by Professor Trash Wheel was `r sum(pull(filter(problem2_df, wheel == "professor_trash_wheel"), weight_tons))` tons. The total number of cigarette butts collected by Gwynns Falls Trash Wheel in June 2022 was `r format(sum(pull(filter(problem2_df, wheel == "gwynns_falls_trash_wheel", month == "June", year == 2022), cigarette_butts)), scientific = FALSE)`.
 
 # Problem 3
 
@@ -151,7 +153,7 @@ zillow_df = read_csv("data/Zip_zori_uc_sfrcondomfr_sm_month_NYC.csv", na = "NA")
   pivot_longer(
     cols = x2015_01_31:x2024_08_31,
     names_to = "date",
-    values_to = "rental_price") |>
+    values_to = "zillow_observed_rent_index") |>
   select(-c(region_type, state_name, metro)) |>
   rename(zip_code = region_name,
          county = county_name) |>
@@ -175,9 +177,41 @@ problem3_df = full_join(zillow_df, zipcodes_df, by = c("county", "zip_code")) |>
       neighborhood,
       region_id,
       size_rank,
-      rental_price))
+      zillow_observed_rent_index))
 
 head(problem3_df, 5)
 ```
 
-The resulting data-set `problem3_df` is...
+The resulting data-set `problem3_df` contains data for New York city zip codes and their corresponding Zillow Observed Rent Index (ZORI), when available, between January 2015 and August 2024. The tidy data-set contains ZORI record date, city, state, Zip Code, county, county FIPS code, neighborhood, the Zillow unique region identifier, the Zillow unique size ranking (based on United States Zip Code population), and the ZORI for that Zip Code. The data-set can be used to track fluctuations in rental prices across New York City.
+
+Rows/observations in the data-set total to `r nrow(problem3_df)`. However, some Zip Codes have missing Zillow data. Observations including ZORI data total to `r nrow(filter(problem3_df, !is.na(zillow_observed_rent_index)))`. There are `r length(unique(pull(problem3_df, zip_code)))` unique Zip Codes included and `r length(unique(pull(problem3_df, neighborhood)))` unique neighborhoods.
+
+There are `r length(pull(filter(problem3_df, is.na(date), zip_code != "11693"), zip_code))` Zip Codes included in Zip Code data but not the Zillow data. These include: 
+```{r}
+problem3_df |>
+  filter(is.na(date),
+         zip_code != "11693") |>
+  pull(zip_code) |>
+  sort()
+```
+
+There is one Zip Code (11693) that shows up in both data-sets, but the entry in the Zip Code data-set has it mistakenly listed under Kings County (Brooklyn), whereas the Zillow data-set has it listed under Queens County (Queens), which is correct.
+
+The additional Zip Codes not accounted for in the Zillow data-set could be due to a number of reasons. For example, if there's not enough listings in a particular Zip Code, there might not be enough information to give an accurate estimate of the ZORI for that time period. With the sample size is too small, the variance can be high and the data may be skewed. Another reason is the area a Zip Code encompasses could be very small and not contain any rental information. Zip Code 10270, for example, seems to only exist for a third of one block in the financial district. Another Zip Code, 10117, maps to the intersection of 8th Ave and 31st Street in Manhattan.
+
+Rental prices during Covid fluctuated heavily. Below are the top 10 Zip Code ZORI decreases from January 2020 to 2021.
+```{r}
+problem3_df |>
+  filter(date == "2020-01-31" | date == "2020-12-31") |>
+  pivot_wider(names_from = date, 
+              values_from = zillow_observed_rent_index) |>
+  mutate(
+    zori_difference = `2020-12-31` - `2020-01-31`) |>
+  arrange(zori_difference) |>
+  select(c(zip_code, county, neighborhood, zori_difference)) |>
+  slice_head(n = 10) |>
+  kable(
+    caption = "Top 10 NYC Zip Codes by ZORI Difference (January 2020 to 2021)")
+```
+
+All of the largest decreases in rental prices occurred in Manhattan. Many of these areas are denser, wealthier, and/or have a lot of transplants who could easily leave the city, leading to a large decrease in demand in the rental market.
