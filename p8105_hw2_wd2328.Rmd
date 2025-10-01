@@ -116,7 +116,7 @@ professor_tw_df = read_excel("data/202509 Trash Wheel Collection Data.xlsx",
 
 Gwynns Falls Trash Wheel
 ```{r}
-gwynnda_tw_df = read_excel("data/202509 Trash Wheel Collection Data.xlsx",
+gwynns_falls_tw_df = read_excel("data/202509 Trash Wheel Collection Data.xlsx",
                            sheet = "Gwynns Falls Trash Wheel",
                            na = c("NA", "", " ", "."),
                            range = "A2:L351") |>
@@ -127,7 +127,7 @@ gwynnda_tw_df = read_excel("data/202509 Trash Wheel Collection Data.xlsx",
 
 Joining data-sets using `bind_rows()`
 ```{r}
-problem2_df = bind_rows(mr_tw_df, professor_tw_df, gwynnda_tw_df) |>
+problem2_df = bind_rows(mr_tw_df, professor_tw_df, gwynns_falls_tw_df) |>
   select(wheel, everything())
 
 head(problem2_df)
@@ -137,7 +137,7 @@ The Trash Wheels remove litter and debris from the Inner Harbor in Baltimore, Ma
 
 # Problem 3
 
-`Zip Codes.csv`
+`Zip Codes.csv` data-frame
 ```{r message=FALSE}
 zipcodes_df = read_csv("data/Zip Codes.csv", na = "NA") |>
   janitor::clean_names() |>
@@ -146,7 +146,7 @@ zipcodes_df = read_csv("data/Zip Codes.csv", na = "NA") |>
 head(zipcodes_df, 5)
 ```
 
-`Zip_zori_uc_sfrcondomfr_sm_month_NYC.csv`
+`Zip_zori_uc_sfrcondomfr_sm_month_NYC.csv` data-frame
 ```{r message=FALSE}
 zillow_df = read_csv("data/Zip_zori_uc_sfrcondomfr_sm_month_NYC.csv", na = "NA") |>
   janitor::clean_names() |>
@@ -164,7 +164,7 @@ zillow_df = read_csv("data/Zip_zori_uc_sfrcondomfr_sm_month_NYC.csv", na = "NA")
 head(zillow_df, 5)
 ```
 
-Joining using `full_join()`
+Joining data-sets using `full_join()`
 ```{r}
 problem3_df = full_join(zillow_df, zipcodes_df, by = c("county", "zip_code")) |>
   select(
@@ -182,11 +182,11 @@ problem3_df = full_join(zillow_df, zipcodes_df, by = c("county", "zip_code")) |>
 head(problem3_df, 5)
 ```
 
-The resulting data-set `problem3_df` contains data for New York city zip codes and their corresponding Zillow Observed Rent Index (ZORI), when available, between January 2015 and August 2024. The tidy data-set contains ZORI record date, city, state, Zip Code, county, county FIPS code, neighborhood, the Zillow unique region identifier, the Zillow unique size ranking (based on United States Zip Code population), and the ZORI for that Zip Code. The data-set can be used to track fluctuations in rental prices across New York City.
+The resulting data-set `problem3_df` contains data for New York city ZIP codes and their corresponding Zillow Observed Rent Index (ZORI), when available, between January 2015 and August 2024. The tidy data-set contains ZORI record date, city, state, ZIP code, county, county FIPS code, neighborhood, the Zillow unique region identifier, the Zillow unique size ranking (based on United States ZIP code population), and the ZORI for that ZIP code. The data-set can be used to track fluctuations in rental prices across New York City.
 
-Rows/observations in the data-set total to `r nrow(problem3_df)`. However, some Zip Codes have missing Zillow data. Observations including ZORI data total to `r nrow(filter(problem3_df, !is.na(zillow_observed_rent_index)))`. There are `r length(unique(pull(problem3_df, zip_code)))` unique Zip Codes included and `r length(unique(pull(problem3_df, neighborhood)))` unique neighborhoods.
+Rows/observations in the data-set total to `r nrow(problem3_df)`. However, some ZIP codes have missing Zillow data. Observations including ZORI data total to `r nrow(filter(problem3_df, !is.na(zillow_observed_rent_index)))`. There are `r length(unique(pull(problem3_df, zip_code)))` unique ZIP codes included and `r length(unique(pull(problem3_df, neighborhood)))` unique neighborhoods.
 
-There are `r length(pull(filter(problem3_df, is.na(date), zip_code != "11693"), zip_code))` Zip Codes included in Zip Code data but not the Zillow data. These include: 
+There are `r length(pull(filter(problem3_df, is.na(date), zip_code != "11693"), zip_code))` ZIP codes included in the ZIP code data-set but not the Zillow data-set. These include: 
 ```{r}
 problem3_df |>
   filter(is.na(date),
@@ -195,11 +195,11 @@ problem3_df |>
   sort()
 ```
 
-There is one Zip Code (11693) that shows up in both data-sets, but the entry in the Zip Code data-set has it mistakenly listed under Kings County (Brooklyn), whereas the Zillow data-set has it listed under Queens County (Queens), which is correct.
+Note: There is one particular ZIP code (11693) that shows up in both data-sets, but the entry in the ZIP code data-set has it mistakenly listed under Kings County (Brooklyn), whereas the Zillow data-set has it listed under Queens County (Queens), which is correct. Therefore, the row/observation containing ZIP code 11693 and Kings County could be removed. 
 
-The additional Zip Codes not accounted for in the Zillow data-set could be due to a number of reasons. For example, if there's not enough listings in a particular Zip Code, there might not be enough information to give an accurate estimate of the ZORI for that time period. With the sample size is too small, the variance can be high and the data may be skewed. Another reason is the area a Zip Code encompasses could be very small and not contain any rental information. Zip Code 10270, for example, seems to only exist for a third of one block in the financial district. Another Zip Code, 10117, maps to the intersection of 8th Ave and 31st Street in Manhattan.
+The additional ZIP codes not accounted for in the Zillow data-set could be due to a number of reasons. For example, if there's not enough listings in a particular ZIP code, there might not be enough information to give an accurate estimate of the ZORI for that time period. When the sample size is too small, the variance can be high and the data may be skewed. Another reason is the area a ZIP code encompasses could be very small and not contain any rental information. ZIP code 10270, for example, seems to only exist for a third of one block in the financial district. Another ZIP code, 10117, maps to the intersection of 8th Ave and 31st Street in Manhattan.
 
-Rental prices during Covid fluctuated heavily. Below are the top 10 Zip Code ZORI decreases from January 2020 to 2021.
+Rental prices during Covid fluctuated heavily. Below are the top 10 ZIP code ZORI decreases from January 2020 to 2021.
 ```{r}
 problem3_df |>
   filter(date == "2020-01-31" | date == "2020-12-31") |>
@@ -211,7 +211,7 @@ problem3_df |>
   select(c(zip_code, county, neighborhood, zori_difference)) |>
   slice_head(n = 10) |>
   kable(
-    caption = "Top 10 NYC Zip Codes by ZORI Difference (January 2020 to 2021)")
+    caption = "Top 10 NYC ZIP Codes by ZORI Difference (January 2020 to 2021)")
 ```
 
 All of the largest decreases in rental prices occurred in Manhattan. Many of these areas are denser, wealthier, and/or have a lot of transplants who could easily leave the city, leading to a large decrease in demand in the rental market.
